@@ -37,5 +37,41 @@ public class Server {
             }
         }
 
+        catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (server != null) {
+                    server.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
+    public static void main(String[] args) {
+        MultiThreadedServer multiThreadedServer = new MultiThreadedServer(5000);
+    }
+
+    private void sendToAllClients(String message) {
+        for (ClientHandler client : clients) {
+            client.sendMessageToClient(message);
+        }
+    }
+
+    private class ClientHandler implements Runnable {
+        private Socket clientSocket;
+        private DataInputStream in;
+        private DataOutputStream out;
+
+        public ClientHandler(Socket socket) {
+            this.clientSocket = socket;
+            try {
+                this.in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+                this.out = new DataOutputStream(socket.getOutputStream());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
