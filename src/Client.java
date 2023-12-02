@@ -45,3 +45,31 @@ public class ClientFILE {
         }
 
     }
+
+        private void receiveMessages() throws IOException {
+            String message;
+            while (true) {
+                message = input.readUTF();
+                if (message.equals("Over")) {
+                    break;
+                }
+                System.out.println("Message from server: " + message);
+            }
+        }
+
+        private void sendMessages() throws IOException {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            String line;
+            while (!(line = reader.readLine()).equals("Over")) {
+                out.writeUTF(line);
+            }
+            out.writeUTF("Over");
+        }
+
+
+
+        public static void main(String args[]) {
+            Client client = new Client("192.168.129.127", 55000);
+        }
+    }
+
