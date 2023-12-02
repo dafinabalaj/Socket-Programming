@@ -3,41 +3,26 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class Server {
     private ServerSocket server = null;
     private List<ClientHandler> clients = new ArrayList<>();
+    private String allowedClientIP = "Admin IP";
+    private File logFileDir = new File("Folder Path");
 
     public Server(int port) {
         try {
             server = new ServerSocket(port);
             System.out.println("Server started");
             System.out.println("Waiting for clients ...");
-            Thread sendToClientsThread = new Thread(() -> {
-                try {
-                    BufferedReader serverReader = new BufferedReader(new InputStreamReader(System.in));
-                    String serverMessage;
-                    while (true) {
-                        serverMessage = serverReader.readLine();
-                        sendToAllClients("Server:" + serverMessage);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            sendToClientsThread.start();
 
             while (true) {
                 Socket clientSocket = server.accept();
-                System.out.println("Client  connected");
 
                 ClientHandler clientHandler = new ClientHandler(clientSocket);
-                clients.add(clientHandler); // Add client to the list
+                clients.add(clientHandler);
                 new Thread(clientHandler).start();
             }
-        }
-
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
@@ -51,52 +36,23 @@ public class Server {
     }
 
     public static void main(String[] args) {
-        MultiThreadedServer multiThreadedServer = new MultiThreadedServer(5000);
-    }
-
-    private void sendToAllClients(String message) {
-        for (ClientHandler client : clients) {
-            client.sendMessageToClient(message);
-        }
+        Server server = new Server(5000);
     }
 
     private class ClientHandler implements Runnable {
         private Socket clientSocket;
         private DataInputStream in;
         private DataOutputStream out;
+        private String clientIP;
 
         public ClientHandler(Socket socket) {
             this.clientSocket = socket;
             try {
                 this.in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
                 this.out = new DataOutputStream(socket.getOutputStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }finally {
-                try {
-                    if (in != null) {
-                        in.close();
-                    }
-                    if (out != null) {
-                        out.close();
-                    }
-                    if (clientSocket != null) {
-                        clientSocket.close();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void sendMessageToClient(String message) {
-            try {
-                out.writeUTF(message);
-                out.flush();
+                this.clientIP = socket.getInetAddress().getHostAddress();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        }
-}
 
