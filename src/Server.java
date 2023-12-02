@@ -56,3 +56,80 @@ public class Server {
             }
         }
 
+        @Override
+        public void run() {
+            try {
+                int clientPort = clientSocket.getPort();
+
+                System.out.println("Client connected from IP: " + clientIP + ", Port: " + clientPort);
+
+                String line = "";
+                while (!line.equals("Over")) {
+                    line = in.readUTF();
+                    System.out.println("Message from client " + clientIP + " (Port: " + clientPort + "): " + line);
+
+                    if (line.equals("ReadFile")) {
+                        sendFileContent();
+                    } else if (line.startsWith("CreateFile ") && clientIP.equals(allowedClientIP)) {
+                        createFileOnServer(line.substring("CreateFile ".length()));
+                    } else if (clientIP.equals(allowedClientIP)) {
+                        try (FileWriter writer = new FileWriter(getLogFilePath(), true);
+                             BufferedWriter bufferedWriter = new BufferedWriter(writer)) {
+                            bufferedWriter.write("Client " + clientIP + " (Port: " + clientPort + "): " + line);
+                            bufferedWriter.newLine();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+
+                System.out.println("Closing connection with client " + clientIP);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (in != null) {
+                        in.close();
+                    }
+                    if (out != null) {
+                        out.close();
+                    }
+                    if (clientSocket != null) {
+                        clientSocket.close();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        private void sendFileContent() {
+            try (BufferedReader fileReader = new BufferedReader(new FileReader(getLogFilePath()))) {
+                String line;
+                while ((line = fileReader.readLine()) != null) {
+                    out.writeUTF(line);
+                }
+                out.writeUTF("Over");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void createFileOnServer(String fileName) {
+            try {
+                File newFile = new File(logFileDir, fileName);
+                if (newFile.createNewFile()) {
+                    System.out.println("File created on the server: " + newFile.getAbsolutePath());
+                } else {
+                    System.out.println("File creation failed. The file already exists.");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private String getLogFilePath() {
+            return logFileDir.getAbsolutePath() + File.separator + "file.txt";
+        }
+    }
+}
