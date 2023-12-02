@@ -69,7 +69,7 @@ public class Client {
 
 
         public static void main(String args[]) {
-            Client client = new Client("Server IP", 55000);
+            Client client = new Client("Server IP", 5000);
         }
     }
 
