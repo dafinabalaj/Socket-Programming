@@ -6,13 +6,13 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-public class ClientFILE {
+public class Client {
 
     private Socket socket = null;
     private DataInputStream input = null;
     private DataOutputStream out = null;
 
-    public ClientFILE(String address, int port) {
+    public Client(String address, int port) {
         try {
             socket = new Socket(address, port);
             System.out.println("Connected");
